@@ -1,0 +1,97 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "moe-routing"
+version = "1.0.0"
+description = "A production-grade Mixture of Experts (MoE) routing layer for PyTorch."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "MoE Routing Authors" }]
+keywords = ["mixture-of-experts", "moe", "transformer", "sparse", "routing", "pytorch"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "torch>=2.0",
+    "numpy",
+]
+
+[project.optional-dependencies]
+viz = ["matplotlib"]
+dev = [
+    "pytest",
+    "pytest-cov",
+    "hypothesis",
+    "mypy",
+    "ruff",
+    "matplotlib",
+    "pdoc",
+]
+
+[project.urls]
+Documentation = "https://example.com/moe-routing/docs"
+Source = "https://example.com/moe-routing"
+
+[tool.setuptools.packages.find]
+include = ["moe*"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py310"
+
+[tool.ruff.lint]
+# A focused, production-sensible rule set: pyflakes, pycodestyle, isort,
+# bugbear, comprehensions, pyupgrade and naming.
+select = ["E", "F", "I", "B", "C4", "UP", "N", "W"]
+ignore = [
+    "N812",  # allow `import torch.nn.functional as F` (lower-case alias of caps)
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Tests may use assert-heavy patterns and longer expressions.
+"tests/*" = ["B011"]
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+ignore_missing_imports = true
+warn_unused_ignores = false
+disallow_untyped_decorators = false
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+# Tests are still type-checked, but with a lighter touch: parametrized cases
+# legitimately pass plain ``str`` where the library expects a ``Literal`` (the
+# library validates these at runtime), deliberately feed wrong types to error
+# paths, and call torch APIs that ship untyped in the stubs.
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+disallow_untyped_calls = false
+check_untyped_defs = true
+disable_error_code = ["arg-type", "list-item"]
+
+[tool.pytest.ini_options]
+addopts = "-ra -q --cov=moe --cov-report=term-missing"
+testpaths = ["tests"]
+filterwarnings = ["ignore::DeprecationWarning"]
+
+[tool.coverage.run]
+# bench.py is a developer-only timing script (a __main__ entry point), not part
+# of the library surface, so it is excluded from the coverage target.
+omit = ["moe/bench.py"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]
